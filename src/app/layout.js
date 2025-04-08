@@ -1,5 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Head from "next/head";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import AppSideBar from "@/page_components/sidebar";
+import { Sidebar } from "lucide-react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,10 +23,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      {/* <Head>
+        <title> AccessibleArts | Home </title>
+      </Head> */}
+      <body>
+        <SidebarProvider>
+          <AppSideBar />
+          <main className="w-full">
+            <SidebarTrigger />
+            {children}
+          </main>
+        </SidebarProvider>
       </body>
     </html>
   );
