@@ -14,7 +14,6 @@ import {
 
 export default function AppSideBar() {
   return (
-    
     <Sidebar>
       <SidebarHeader>
         <SidebarMenu>
@@ -34,7 +33,7 @@ export default function AppSideBar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Ongoing description process </SidebarGroupLabel>
+          <SidebarGroupLabel>Ongoing </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -52,7 +51,7 @@ export default function AppSideBar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel> Closed description process</SidebarGroupLabel>
+          <SidebarGroupLabel> Archived</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
