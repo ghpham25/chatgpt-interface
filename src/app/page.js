@@ -81,8 +81,8 @@ export default function SampleHome() {
     const chatData = await chatRes.json();
     const chatId = chatData.chat_id;
 
-    // // 3. Redirect to new chat page
-    // router.push(`/chat/${chat_id}`);
+    // 3. Redirect to new chat page
+    router.push(`/chat/${chatId}`);
 
     // const objectURL = URL.createObjectURL(formData.picture);
     // router.push(
