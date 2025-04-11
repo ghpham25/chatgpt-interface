@@ -35,7 +35,9 @@ export default async function handler(req, res) {
       uploaded_at: new Date(),
     });
 
-    return res.status(200).json({ image_id: result.insertedId });
+    return res
+      .status(200)
+      .json({ image_id: result.insertedId, image_path: imagePath });
   } catch (err) {
     console.error("Image upload error:", err);
     res.status(500).json({ error: "Image upload failed." });

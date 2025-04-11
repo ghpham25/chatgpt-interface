@@ -58,6 +58,7 @@ export default function SampleHome() {
 
     const imageData = await imageRes.json();
     const imageId = imageData.image_id;
+    const imagePath = imageData.image_path;
 
     //Create a new chat session
     const chatRes = await fetch("/api/chats", {
@@ -69,6 +70,7 @@ export default function SampleHome() {
       body: JSON.stringify({
         title: formData.title,
         image_id: imageId,
+        image_path: imagePath,
         initial_prompt: formData.initprompt,
         user_id: "demo-user", // optional for now
       }),
