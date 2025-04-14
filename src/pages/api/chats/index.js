@@ -7,8 +7,9 @@ import { ObjectId } from "mongodb";
 import OpenAI from "openai";
 import dotenv from "dotenv";
 import path from "path";
-dotenv.config();
 import fs from "fs";
+
+dotenv.config();
 
 export default async function handler(req, res) {
   if (req.method == "POST") {
