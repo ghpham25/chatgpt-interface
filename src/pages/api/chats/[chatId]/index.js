@@ -34,15 +34,12 @@ export default async function handler(req, res) {
       await connectToDB();
       const db = mongoose.connection.useDb("curator_test");
 
-      const chat = await db.collection("ChatSession").findOne({
-        _id: new ObjectId(chatId),
-      });
-
-      if (!chat) {
-        return res.status(404).json({ error: "Chat not found" });
+      const { user_prompt, image_path, chat } = req.body;
+      console.log(req.body);
+      if (!chat || !user_prompt || !image_path) {
+        return res.status(400).json({ error: "Chat data is required" });
       }
 
-      const { user_prompt, image_path } = req.body;
       const imagePath = path.join(process.cwd(), "public", image_path); // full path to actual image file
       const base64image = fs.readFileSync(imagePath, "base64");
 
@@ -126,7 +123,7 @@ export default async function handler(req, res) {
       ];
 
       await db.collection("ChatSession").updateOne(
-        { id: new ObjectId(chatId) },
+        { _id: ObjectId.createFromHexString(chatId) },
         {
           $set: { messages: updatedMessages, ended_at: new Date() },
         }

@@ -1,107 +1,207 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { Textarea } from "@/components/ui/textarea";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
 
 export default function Samplethread() {
-  const searchParams = useSearchParams();
-  const imageUrl = searchParams.get("image"); // This is now an Object URL!
-  const title = searchParams.get("title");
-  const prompt = searchParams.get("initprompt");
+  const { chatId } = useParams();
+  const [chat, setChat] = useState(null);
+  const [image, setImage] = useState(null);
+  const [userPrompt, setUserPrompt] = useState("");
+  const [highlightMap, setHighlightMap] = useState({});
+  const [highlightButton, setHighlightButton] = useState(null); // { text, messageId, x, y }
+  const [loading, setLoading] = useState(true);
+  const messagesRef = useRef(null);
 
-  const [messages, setMessages] = useState([]);
-  const [newPrompt, setNewPrompt] = useState("");
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    const resolvedPrompt = userPrompt.replace(
+      /\[\[(highlight_\d+)\]\]/g,
+      (_, id) => {
+        return highlightMap[id]?.text || "[missing text]";
+      }
+    );
 
-  useEffect(() => {
-    if (title || prompt) {
-      setMessages((prev) => {
-        // Prevent duplicate messages
-        const hasImage = prev.some((msg) => msg.content === imageUrl);
-        const hasPrompt = prev.some((msg) => msg.content === prompt);
+    const response = await fetch("/api/chats/" + chatId, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_prompt: resolvedPrompt,
+        image_path: image.image_path,
+        chat: chat,
+      }),
+    });
 
-        const newMessages = [...prev];
-        if (imageUrl && !hasImage)
-          newMessages.push({ role: "user", content: imageUrl });
-        if (prompt && !hasPrompt)
-          newMessages.push({ role: "user", content: prompt });
-
-        // Add system message only once
-        if (!prev.some((msg) => msg.role === "system")) {
-          newMessages.push({
-            role: "system",
-            content: "This is a hardcoded response.",
-          });
-        }
-        return newMessages;
-      });
+    if (!response.ok) {
+      console.error("Failed to send user prompt.");
+      return;
     }
-  }, [title, prompt, imageUrl]);
 
-  const handlePromptSubmit = () => {
-    if (newPrompt.trim()) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: newPrompt },
-        { role: "system", content: "This is another hardcoded response." },
-      ]);
-      setNewPrompt(""); // Clear the input field
-    }
+    const chatData = await response.json();
+    setChat(chatData);
+    setUserPrompt("");
   };
 
+  useEffect(() => {
+    if (!chatId) return;
+
+    const fetchChat = async () => {
+      try {
+        const chatRes = await fetch("/api/chats/" + chatId);
+        if (!chatRes.ok) throw new Error("Chat fetch failed.");
+        const data = await chatRes.json();
+        setChat(data);
+
+        const imageRes = await fetch("/api/images/" + data.image_id);
+        if (!imageRes.ok) throw new Error("Image fetch failed.");
+        const imageData = await imageRes.json();
+        setImage(imageData);
+      } catch (error) {
+        console.error("Error fetching chat or image:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChat();
+  }, [chatId]);
+
+  useEffect(() => {
+    const handleMouseUp = (event) => {
+      console.log("Mouse up event detected!", event);
+      const selection = window.getSelection();
+      if (selection && selection.toString().trim()) {
+        const text = selection.toString();
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const messageId =
+          range.startContainer.parentElement.closest("[data-msgid]")?.dataset
+            ?.msgid;
+
+        if (messageId) {
+          setHighlightButton({
+            text,
+            messageId,
+            x: rect.x + window.scrollX,
+            y: rect.y + window.scrollY,
+          });
+        }
+      } else {
+        setHighlightButton(null);
+      }
+    };
+
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
+  const insertHighlight = () => {
+    if (!highlightButton) return;
+    const id = `highlight_${Object.keys(highlightMap).length + 1}`;
+    const newMap = {
+      ...highlightMap,
+      [id]: {
+        text: highlightButton.text,
+        messageId: highlightButton.messageId,
+      },
+    };
+    setHighlightMap(newMap);
+    setUserPrompt((prev) => prev + ` [[${id}]] `);
+    setHighlightButton(null);
+  };
+
+  const renderPromptWithHighlights = () => {
+    const parts = userPrompt.split(/(\[\[highlight_\d+\]\])/g);
+    return parts.map((part, i) => {
+      const match = part.match(/^\[\[(highlight_\d+)\]\]$/);
+      if (match) {
+        const id = match[1];
+        const highlight = highlightMap[id];
+        if (!highlight) return null;
+        return (
+          <span
+            key={i}
+            className="inline-block bg-yellow-200 px-2 py-1 mx-1 rounded cursor-pointer hover:bg-yellow-300"
+            onClick={() => {
+              const element = document.getElementById(highlight.messageId);
+              if (element) element.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            {highlight.text}
+          </span>
+        );
+      }
+      return <span key={i}>{part}</span>;
+    });
+  };
+
+  if (loading) return <div>Loading chat...</div>;
+  if (!chat) return <div>Chat not found.</div>;
+
   return (
-    <div className="flex flex-col h-screen">
-      {/* Chat History */}
-      <div className="chat-history flex-1 overflow-y-auto p-4">
-        {title && <h1 className="text-xl font-bold">{title}</h1>}
-        {messages.map((message, index) => (
+    <div className="flex flex-col h-screen mx-auto w-full relative">
+      <div className="sticky top-0 bg-white z-10 border-b px-2 py-2">
+        <h1 className="text-2xl font-bold">{chat.title}</h1>
+      </div>
+
+      <div
+        className="flex-1 overflow-y-auto px-2 py-2 space-y-4"
+        ref={messagesRef}
+      >
+        {image &
+        (
+          <img
+            src={image.image_path}
+            alt="Uploaded Artwork"
+            className="w-full max-w-md rounded-lg shadow mb-4"
+          />
+        )}
+
+        {chat.messages.map((msg) => (
           <div
-            key={index}
-            className={`message mt-4 flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
+            key={msg._id}
+            id={msg._id}
+            data-msgid={msg._id}
+            className={`p-3 rounded-md max-w-lg ${
+              msg.sender === "user"
+                ? "bg-blue-100 self-start"
+                : "bg-gray-100 self-end"
             }`}
           >
-            <div
-              className={`message-content p-2 rounded-lg ${
-                message.role === "user"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-black"
-              }`}
-            >
-              <strong className="font-semibold">
-                {message.role === "user" ? "You" : "System"}:
-              </strong>
-              {message.content === imageUrl ? (
-                <img
-                  src={message.content}
-                  alt="User Image"
-                  className="max-w-full h-auto mt-2"
-                />
-              ) : (
-                <p className="mt-2">{message.content}</p>
-              )}
-            </div>
+            <p className="text-sm font-semibold text-gray-600 mb-1">
+              {msg.sender === "user" ? "You" : "CuratorBot"}
+            </p>
+            <p className="text-gray-800 whitespace-pre-wrap">{msg.text}</p>
           </div>
         ))}
       </div>
 
-      {/* Chat Input */}
-      <div className="chat-input flex items-center sticky bottom-4 p-4 bg-white shadow-lg">
-        <div className="relative w-full">
-          <Textarea
-            value={newPrompt}
-            onChange={(e) => setNewPrompt(e.target.value)}
-            placeholder="Type your prompt here..."
-            className="w-full p-3 pr-16 border border-gray-300 rounded-lg resize-none"
-          />
-          <button
-            onClick={handlePromptSubmit}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600"
-          >
-            Submit
-          </button>
+      <form
+        onSubmit={onSubmit}
+        className="sticky bottom-0 bg-white border-t px-6 py-4"
+      >
+        <div className="flex items-center space-x-2 w-full">
+          <div className="flex-1 p-3 border rounded-md bg-gray-50 text-left min-h-[48px] max-h-40 overflow-y-auto">
+            {renderPromptWithHighlights()}
+          </div>
         </div>
-      </div>
+      </form>
+
+      {highlightButton && (
+        <button
+          style={{
+            position: "absolute",
+            top: highlightButton.y + 24,
+            left: highlightButton.x,
+            zIndex: 50,
+          }}
+          className="bg-yellow-400 hover:bg-yellow-500 px-3 py-1 rounded shadow"
+          onClick={insertHighlight}
+        >
+          ➕ Insert Highlight
+        </button>
+      )}
     </div>
   );
 }
