@@ -25,6 +25,11 @@ if (!cachedMongoObject) {
 }
 
 async function connectToDB() {
+  if (mongoose.connections[0].readyState) {
+    console.log("Using existing database connection");
+    return;
+  }
+  
   console.log("Connecting to DB");
   if (cachedMongoObject.connection) {
     return cachedMongoObject.connection;

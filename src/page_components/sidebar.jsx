@@ -1,4 +1,6 @@
+"use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +15,28 @@ import {
 } from "@/components/ui/sidebar";
 
 export default function AppSideBar() {
+  const user_id = "demo-user"; // Replace with actual user ID logic
+  const [chatSessions, setChatSessions] = useState([]);
+
+  useEffect(() => {
+    console.log("fetching chat sessions for side bar");
+    const fetchData = async () => {
+      const response = await fetch(`/api/chats?user_id=${user_id}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch chat sessions.");
+        return;
+      }
+
+      const data = await response.json();
+      setChatSessions(data);
+    };
+
+    fetchData();
+  }, []); // Empty dependency array ensures it only runs once when the component mounts
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -33,41 +57,40 @@ export default function AppSideBar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Ongoing </SidebarGroupLabel>
+          <SidebarGroupLabel> Ongoing </SidebarGroupLabel>
+
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/arts/1" asChild>
-                  <a> Art 1 </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/arts/2" asChild>
-                  <a> Art 2 </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {chatSessions
+                .filter((chat) => chat.is_archived === false)
+                .map((chat) => (
+                  <SidebarMenuItem key={chat.chatId}>
+                    <SidebarMenuButton href={`/chat/${chat.chatId}`} asChild>
+                      <a>{chat.title}</a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
         <SidebarGroup>
-          <SidebarGroupLabel> Archived</SidebarGroupLabel>
+          <SidebarGroupLabel> Archived </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <a href="/arts/1"> Art 3 </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <a href="/arts/2"> Art 4 </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {chatSessions
+                .filter((chat) => chat.is_archived === true)
+                .map((chat) => (
+                  <SidebarMenuItem key={chat.chatId}>
+                    <SidebarMenuButton href={`/chat/${chat.chatId}`} asChild>
+                      <a>{chat.title}</a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
       <SidebarFooter />
     </Sidebar>
   );

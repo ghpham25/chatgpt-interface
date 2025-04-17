@@ -29,10 +29,8 @@ export default function RootLayout({ children }) {
       <body>
         <SidebarProvider>
           <AppSideBar />
-          {/* <main className="w-full"> */}
           <SidebarTrigger />
           {children}
-          {/* </main> */}
         </SidebarProvider>
       </body>
     </html>
