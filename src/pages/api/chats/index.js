@@ -90,5 +90,37 @@ export default async function handler(req, res) {
       console.error("Chat session creation error:", err);
       return res.status(500).json({ error: "Failed to create chat session." });
     }
+  } else if (req.method == "GET") {
+    //get all the chat sessions, return the list of titles and corresponding chatIds
+    try {
+      await connectToDB();
+      const db = mongoose.connection.useDb("curator_test");
+      const { user_id } = req.query;
+
+      if (!user_id) {
+        return res.status(400).json({ error: "Missing user_id" });
+      }
+
+      const chatSessions = await db
+        .collection("ChatSession")
+        .find({ user_id: user_id })
+        .toArray();
+
+      if (!chatSessions || chatSessions.length === 0) {
+        return res.status(404).json({ error: "No chat sessions found." });
+      }
+
+      const chatList = chatSessions.map((session) => ({
+        chatId: session._id,
+        title: session.title,
+        is_archived: session.is_archived,
+        started_at: session.started_at,
+      }));
+
+      return res.status(200).json(chatList);
+    } catch (error) {
+      console.error("Error fetching chat sessions:", error);
+      return res.status(500).json({ error: "Failed to fetch chat sessions." });
+    }
   }
 }
