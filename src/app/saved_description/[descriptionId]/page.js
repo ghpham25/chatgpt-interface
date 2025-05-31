@@ -62,13 +62,13 @@ export default function SavedDescription() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <div>
       <h1 className="text-3xl font-bold text-gray-800">{chatSession.title}</h1>
       <p className="text-sm text-gray-500 mt-2">
         {savedDescription.created_at}
       </p>
 
-      <div className="flex flex-col md:flex-row items-center mt-6">
+      <div className="flex flex-col md:flex-row items-center mt-6 gap-8 p-4">
         <img
           src={image.image_path}
           alt="Description Image"
@@ -82,7 +82,7 @@ export default function SavedDescription() {
       </div>
 
       {/* Buttons Section */}
-      <div className="flex justify-between mt-6 gap-4">
+      <div className="flex justify-end mt-6 gap-4 pr-1.5">
         <Button onClick={handleEditDescription} variant="outline">
           Edit Description
         </Button>
@@ -97,12 +97,12 @@ export default function SavedDescription() {
       {/* Edit Description Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-3xl w-full">
             <h2 className="text-xl font-semibold mb-4">Edit Description</h2>
             <textarea
               value={editedDescription}
               onChange={handleChangeDescription}
-              className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              className="w-full h-96 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               placeholder="Edit the description..."
             />
             <div className="flex justify-end mt-4 gap-2">
