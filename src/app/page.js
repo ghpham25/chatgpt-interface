@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 export default function SampleHome() {
   const [formData, setFormData] = useState({
@@ -97,84 +98,80 @@ export default function SampleHome() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <form onSubmit={onSubmit} className="space-y-6">
-        {/* Title Input */}
-        <div className="flex flex-col">
-          <label
-            htmlFor="title"
-            className="text-lg font-medium text-gray-700 mb-2"
-          >
-            Title
-          </label>
-          <input
-            type="text"
-            id="title"
-            name="title"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            placeholder="e.g: Mona Lisa"
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+    <form onSubmit={onSubmit} className="space-y-6 p-5">
+      {/* Title Input */}
+      <div className="flex flex-col">
+        <label
+          htmlFor="title"
+          className="text-lg font-medium text-gray-700 mb-2"
+        >
+          Title
+        </label>
+        <input
+          type="text"
+          id="title"
+          name="title"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          placeholder="e.g: Mona Lisa"
+          className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
 
-        {/* Image Upload */}
-        <div className="flex flex-col">
-          <label
-            htmlFor="picture"
-            className="text-lg font-medium text-gray-700 mb-2"
-          >
-            Picture
-          </label>
-          <input
-            type="file"
-            id="picture"
-            name="picture"
-            onChange={handleImageUpload}
-            accept="image/*"
-            className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+      {/* Image Upload */}
+      <div className="flex flex-col">
+        <label
+          htmlFor="picture"
+          className="text-lg font-medium text-gray-700 mb-2"
+        >
+          Picture
+        </label>
+        <input
+          type="file"
+          id="picture"
+          name="picture"
+          onChange={handleImageUpload}
+          accept="image/*"
+          className="p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        />
+      </div>
 
-        {/* Custom Dropdown for Prompt */}
-        <div className="relative">
-          <label
-            htmlFor="initprompt"
-            className="block text-lg font-medium text-gray-700 mb-2"
-          >
-            Select a prompt
-          </label>
-          <div className="mt-1">
-            <div className="border border-gray-300 rounded-md">
-              {prompts.map((prompt) => (
-                <div
-                  key={prompt.value}
-                  className={`p-3 cursor-pointer hover:bg-gray-100 ${
-                    formData.initprompt === prompt.value ? "bg-gray-200" : ""
-                  }`}
-                  onClick={() => handleChange(prompt.value)}
-                >
-                  {prompt.label}
-                </div>
-              ))}
-            </div>
+      {/* Custom Dropdown for Prompt */}
+      <div className="relative">
+        <label
+          htmlFor="initprompt"
+          className="block text-lg font-medium text-gray-700 mb-2"
+        >
+          Select a prompt
+        </label>
+        <div className="mt-1">
+          <div className="border border-gray-300 rounded-md">
+            {prompts.map((prompt) => (
+              <div
+                key={prompt.value}
+                className={`p-3 cursor-pointer hover:bg-gray-100 ${
+                  formData.initprompt === prompt.value ? "bg-gray-200" : ""
+                }`}
+                onClick={() => handleChange(prompt.value)}
+              >
+                {prompt.label}
+              </div>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Submit Button */}
-        <div className="flex justify-center">
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
-          >
-            Start a thread
-          </button>
-        </div>
-      </form>
-    </div>
+      {/* Submit Button */}
+      <div className="flex justify-center">
+        <Button
+          type="submit"
+          className="w-1/2 py-3 px-4 text-white rounded-md hover:bg-blue-600 transition"
+        >
+          Start a thread
+        </Button>
+      </div>
+    </form>
   );
 }

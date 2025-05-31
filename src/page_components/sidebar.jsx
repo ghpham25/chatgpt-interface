@@ -48,7 +48,7 @@ export default function AppSideBar() {
           </SidebarMenuItem>
 
           <SidebarMenuItem>
-            <SidebarMenuButton href="/sample/saved_arts" asChild>
+            <SidebarMenuButton href="/saved_description" asChild>
               <a className="font-bold"> Saved Arts </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

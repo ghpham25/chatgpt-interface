@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { v4 as uuidv4 } from "uuid";
+import { Button } from "@/components/ui/button";
 
 export default function Samplethread() {
   const { chatId } = useParams();
@@ -151,6 +152,32 @@ export default function Samplethread() {
     promptRef.current.focus();
   };
 
+  const handleSave = async (messageId) => {
+    const message = chat.messages.find((msg) => msg._id === messageId);
+    if (!message) {
+      console.error("Message not found.");
+      return;
+    }
+
+    const response = await fetch("/api/saved", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: "demo-user",
+        image_id: image._id,
+        description: message.text,
+        session_id: chatId,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to save description.");
+      return;
+    }
+    const data = await response.json();
+    console.log("Description saved successfully:", data);
+  };
+
   if (loading) return <div>Loading chat...</div>;
   if (!chat) return <div>Chat not found.</div>;
 
@@ -187,6 +214,15 @@ export default function Samplethread() {
               {msg.sender === "user" ? "You" : "CuratorBot"}
             </p>
             <p className="text-gray-800 whitespace-pre-wrap">{msg.text}</p>
+            <div className="flex justify-end mt-0.5">
+              {msg.sender === "user" ? (
+                ""
+              ) : (
+                <Button className="h-5.5" onClick={() => handleSave(msg._id)}>
+                  Save Description
+                </Button>
+              )}{" "}
+            </div>
           </div>
         ))}
       </div>
